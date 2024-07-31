@@ -1,0 +1,10 @@
+{
+	"id": "obsidian-open-sidebar-on-hover",
+	"name": "Open Sidebar on Hover",
+	"version": "0.9.9",
+	"minAppVersion": "0.15.0",
+	"description": "Enables the ability to open the sidebar by hovering over it.",
+	"author": "AnAngryRaven",
+	"authorUrl": "https://raven.guhcat.com/",
+	"isDesktopOnly": true
+}
