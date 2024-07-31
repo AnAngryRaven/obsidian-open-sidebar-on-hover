@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-sample-plugin",
+	"name": "obsidian-open-sidebar-on-hover",
 	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "Enables the ability to open the sidebar by hovering over it.",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
