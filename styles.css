@@ -6,7 +6,10 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+.expand-sidebar-hover-disabled {
+	
+}
 
-.is-disabled {
+.expand-sidebar-hover-disabled.is-disabled {
 	display: none;
 }

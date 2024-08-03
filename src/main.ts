@@ -1,8 +1,6 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from 'obsidian';
 
-// Remember to rename these classes and interfaces!
-
-interface MyPluginSettings {
+interface OpenSidebarHoverSettings {
 	leftSidebar: boolean;
 	rightSidebar: boolean;
 	enforceSameDelay: boolean;
@@ -12,9 +10,9 @@ interface MyPluginSettings {
 	speedDetection: boolean;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
+const DEFAULT_SETTINGS: OpenSidebarHoverSettings = {
 	leftSidebar: true,
-	rightSidebar: true,
+	rightSidebar: false,
 	enforceSameDelay: true,
 	sidebarDelayBoth: '300',
 	sidebarDelayLeft: '300',
@@ -22,29 +20,17 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 	speedDetection: false
 }
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class OpenSidebarHover extends Plugin {
+	settings: OpenSidebarHoverSettings;
 
 	async onload() {
-		await this.loadSettings();
-
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: 'toggle-sidebar-state',
-			name: 'Toggle sidebar state',
-			callback: () => {
-				//new SampleModal(this.app).open();
-				if(this.app.workspace.leftSplit.collapsed){
-					this.app.workspace.leftSplit.expand();
-				}else {
-					this.app.workspace.leftSplit.collapse();
-				}
-				
-			}
-		});
+		await this.loadSettings();		
 		
-		
-		
+		/*
+		Believe me, I'm aware of how terrible this looks. But the way it works means I'm kind of inducing a race
+		condition. So, it sort of has to be in one big thing in order to access the appropriate variable. I'm sure
+		with enough time I could make it look good, but right now I'm more concerned with getting it to work :p
+		*/
 		this.app.workspace.onLayoutReady(() => {
 			console.log(this.settings.enforceSameDelay);
 			//Split constants -- Just streamlines calling them
@@ -63,52 +49,63 @@ export default class MyPlugin extends Plugin {
 			
 			//Check to see if the cursor has left the leftSplit area...
 			this.registerDomEvent(leftSplit.containerEl, "mouseleave", () => {
-				isHovering = false;
-				var delayTime;
-				
-				if(settingsConst.enforceSameDelay){
-					delayTime = settingsConst.sidebarDelayBoth;
-				}else {
-					delayTime = settingsConst.sidebarDelayLeft;
-				}
-				
-				setTimeout(() => {
-					if(!isHovering)
-						leftSplit.collapse(); //...if it has after sideBarDelay
-				}, delayTime);
+				if(settingsConst.leftSidebar){ //Check to see if the user has the 'Left Sidebar Hover' setting enabled.
+					isHovering = false;
+					
+					if(settingsConst.enforceSameDelay){
+						var delayTime = settingsConst.sidebarDelayBoth;
+					}else {
+						var delayTime = settingsConst.sidebarDelayLeft;
+					}
+					
+					setTimeout(() => {
+						if(!isHovering)
+							leftSplit.collapse(); //...if it has after the appropriate delay length, close the leftSplit...
+					}, delayTime);
 
-				this.registerDomEvent(leftSplit.containerEl, "mouseenter", () => {
-					isHovering = true;
-				});
+					this.registerDomEvent(leftSplit.containerEl, "mouseenter", () => {
+						isHovering = true; //...but if the mouse reenters before the delay length, set 'isHovering' to true, preventing the above from happening.
+					});
+				}
 			});
 			
-			//TODO: Implement the right split fully
-			/*
+			//Check to see if the cursor has left the leftSplit area...
 			this.registerDomEvent(rightSplit.containerEl, "mouseleave", () => {
-				isHovering = false;
-				var delayTime;
-				
-				if(settingsConst.enforceSameDelay){
-					delayTime = settingsConst.sidebarDelayBoth;
-				}else {
-					delayTime = settingsConst.sidebarDelayLeft;
-				}
-				
-				setTimeout(() => {
-					if(!isHovering)
-						rightSplit.collapse(); //...if it has after sideBarDelay
-				}, delayTime);
+				//Check to see if the user has the 'Right Sidebar Hover' setting enabled.
+				if(settingsConst.leftSidebar){
+					isHovering = false;
+					
+					if(settingsConst.enforceSameDelay){
+						var delayTime = settingsConst.sidebarDelayBoth;
+					}else {
+						var delayTime = settingsConst.sidebarDelayLeft;
+					}
+					
+					setTimeout(() => {
+						if(!isHovering)
+							rightSplit.collapse(); //...if it has after the appropriate delay length, close the rightSplit...
+					}, delayTime);
 
-				this.registerDomEvent(rightSplit.containerEl, "mouseenter", () => {
-					isHovering = true;
-				});
-			});*/
+					this.registerDomEvent(rightSplit.containerEl, "mouseenter", () => {
+						isHovering = true; //...but if the mouse reenters before the delay length, set 'isHovering' to true, preventing the above from happening.
+					});
+				}
+			});
 			
-			this.registerDomEvent(document, "mouseleave", () => {
-				isHovering = true;
-			})
-			this.registerDomEvent(leftRibbon.containerEl, "mouseenter", () => { this.app.workspace.leftSplit.expand(); isHovering = true; } )
-			//this.registerDomEvent(this.app.workspace.leftRibbon.containerEl, "mouseleave", () => {console.log("leftRibbon -- EXIT");} )
+			this.registerDomEvent(document, "mouseleave", () => { isHovering = true; }) //Any time the cursor leaves the application (which includes the top bar), set 'isHovering' to true.
+			
+			this.registerDomEvent(leftRibbon.containerEl, "mouseenter", () => {
+				if(settingsConst.leftSidebar){
+					this.app.workspace.leftSplit.expand(); 
+					isHovering = true;
+				}
+			});
+			this.registerDomEvent(rightRibbon.containerEl, "mouseenter", () => {
+				if(settingsConst.rightSidebar){
+					this.app.workspace.rightSplit.expand();
+					isHovering = true;
+				}
+			});
 			this.registerDomEvent(document, "mouseenter", () => {
 				isHovering = false;
 				
@@ -126,8 +123,12 @@ export default class MyPlugin extends Plugin {
 				
 				setTimeout(() => {
 					if(!isHovering){
-						leftSplit.collapse();
-						//rightSplit.collapse();
+						if(settingsConst.leftSidebar){
+							leftSplit.collapse();
+						}
+						if(settingsConst.rightSidebar){
+							rightSplit.collapse();
+						}
 					}
 				}, delayTimeLeft);
 			})
@@ -135,9 +136,6 @@ export default class MyPlugin extends Plugin {
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000));
 	}
 
 	onunload() {
@@ -153,26 +151,10 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
-
-	onOpen() {
-		const {contentEl} = this;
-		contentEl.setText('Woah!');
-	}
-
-	onClose() {
-		const {contentEl} = this;
-		contentEl.empty();
-	}
-}
-
 class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+	plugin: OpenSidebarHover;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: OpenSidebarHover) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -181,6 +163,15 @@ class SampleSettingTab extends PluginSettingTab {
 		const {containerEl} = this;
 
 		containerEl.empty();
+		
+		/*
+			+==================+
+			| GENERAL SETTINGS |
+			+==================+
+		*/
+		
+		containerEl.createEl("h1", { text: "General Settings" });
+		containerEl.createEl("p", { text: "General settings for the plugin." });
 		
 		new Setting(containerEl).setName('Left Sidebar Hover')
 			.setDesc("Enables the expansion and collapsing of the left sidebar on hover.")
@@ -192,7 +183,7 @@ class SampleSettingTab extends PluginSettingTab {
 				}));
 		
 		new Setting(containerEl).setName('Right Sidebar Hover')
-			.setDesc("Enables the expansion and collapsing of the right sidebar on hover.")
+			.setDesc("Enables the expansion and collapsing of the right sidebar on hover. NOTE: Does not actually do anything unless you *have* a right sidebar.")
 			.addToggle(t => t
 				.setValue(this.plugin.settings.rightSidebar)
 				.onChange(async (value) => {
@@ -206,21 +197,28 @@ class SampleSettingTab extends PluginSettingTab {
 			+=========================+
 		*/
 		
+		containerEl.createEl("h1", { text: "Collapse Delay Settings" });
+		containerEl.createEl("p", { text: "Settings to change the speed at which the sidebar collapses." });
+		
 		//'Same Collapse Delay' setting
 		new Setting(containerEl).setName('Same Collapse Delay')
 			.setDesc("Makes the delay for the left and right sidebars the same.")
 			.addToggle(t => t
 				.setValue(this.plugin.settings.enforceSameDelay)
 				.onChange(async (value) => {
+					//Set plugin setting according to toggle value
 					this.plugin.settings.enforceSameDelay = value;
+					
+					//Set the delay settings for the right, left, and both sidebars accordingly
 					rightSidebarDelaySetting.setDisabled(value);
 					leftSidebarDelaySetting.setDisabled(value);
 					bothSidebarDelaySetting.setDisabled(!value);
-					console.log(value);
-					console.log(this.plugin.settings.enforceSameDelay);
+					
+					//Save the plugin setting
 					await this.plugin.saveSettings();
 				}));
 				
+		//'Sidebar Collapse Delay (Both)' setting
 		const bothSidebarDelaySetting = new Setting(containerEl)
 		.setName('Sidebar Collapse Delay (Both)')
 		.setDesc('The delay in milliseconds before the right sidebar collapses after the mouse has left. Enter \'0\' to disable delay.')
@@ -230,8 +228,10 @@ class SampleSettingTab extends PluginSettingTab {
 			.onChange(async (value) => {
 				this.plugin.settings.sidebarDelayBoth = value;
 				await this.plugin.saveSettings();
-			}));
+			}))
+		.setClass("expand-sidebar-hover-disabled");
 		
+		//'Left Sidebar Collapse Delay' setting
 		const leftSidebarDelaySetting = new Setting(containerEl)
 		.setName('Left Sidebar Collapse Delay')
 		.setDesc('The delay in milliseconds before the left sidebar collapses after the mouse has left. Enter \'0\' to disable delay.')
@@ -241,8 +241,10 @@ class SampleSettingTab extends PluginSettingTab {
 			.onChange(async (value) => {
 				this.plugin.settings.sidebarDelayLeft = value;
 				await this.plugin.saveSettings();
-			}));
+			}))
+		.setClass("expand-sidebar-hover-disabled");
 		
+		//'Right Sidebar Collapse Delay' setting
 		const rightSidebarDelaySetting = new Setting(containerEl)
 		.setName('Right Sidebar Collapse Delay')
 		.setDesc('The delay in milliseconds before the right sidebar collapses after the mouse has left. Enter \'0\' to disable delay.')
@@ -252,16 +254,31 @@ class SampleSettingTab extends PluginSettingTab {
 			.onChange(async (value) => {
 				this.plugin.settings.sidebarDelayRight = value;
 				await this.plugin.saveSettings();
-			}));
+			}))
+		.setClass("expand-sidebar-hover-disabled");
 		
+		//Note: This conditional seems to only be checked once, when the plugin is enabled. Hence why it's written as such.
+		//Check to see if 'Same Collapse Delay' is set to true...
 		if(this.plugin.settings.enforceSameDelay){
 			rightSidebarDelaySetting.setDisabled(true);
-			leftSidebarDelaySetting.setDisabled(true);
+			leftSidebarDelaySetting.setDisabled(true); //...if so, disable the left and right 'Sidebar Collapse Delay' settings...
 		}else {
-			bothSidebarDelaySetting.setDisabled(true);
+			bothSidebarDelaySetting.setDisabled(true); //...otherwise, only disable the 'Sidebar Collapse Delay (Both)' setting!
 		}
 		
+		/*
+			+=======================+
+			| EXPERIMENTAL SETTINGS |
+			+=======================+
+		*/
 		
+		containerEl.createEl("h1", { text: "Experimental Settings" });
+		containerEl.createEl("p", { text: "Settings to enable experimental features. Note that such settings may not always be present." });
+		
+		containerEl.createEl("i", { text: "Sorry, nothin' to report right now boss!" });
+		
+		/**
+		//May or may not ever get implemented.
 		new Setting(containerEl).setName('High Speed Detection (BETA)')
 			.setDesc("If enabled, prevents the sidebar from expanding if the cursor is moving too quickly.")
 			.addToggle(t => t
@@ -270,5 +287,6 @@ class SampleSettingTab extends PluginSettingTab {
 					this.plugin.settings.speedDetection = value;
 					await this.plugin.saveSettings();
 				}));
+		**/
 	}
 }
