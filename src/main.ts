@@ -72,7 +72,7 @@ export default class OpenSidebarHover extends Plugin {
 			//Check to see if the cursor has left the leftSplit area...
 			this.registerDomEvent(rightSplit.containerEl, "mouseleave", () => {
 				//Check to see if the user has the 'Right Sidebar Hover' setting enabled.
-				if(settingsConst.leftSidebar){
+				if(settingsConst.rightSidebar){
 					isHovering = false;
 					
 					if(settingsConst.enforceSameDelay){
