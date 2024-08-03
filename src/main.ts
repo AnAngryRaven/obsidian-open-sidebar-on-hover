@@ -32,7 +32,6 @@ export default class OpenSidebarHover extends Plugin {
 		with enough time I could make it look good, but right now I'm more concerned with getting it to work :p
 		*/
 		this.app.workspace.onLayoutReady(() => {
-			console.log(this.settings.enforceSameDelay);
 			//Split constants -- Just streamlines calling them
 			const leftSplit = this.app.workspace.leftSplit;
 			const rightSplit = this.app.workspace.rightSplit;
@@ -135,7 +134,7 @@ export default class OpenSidebarHover extends Plugin {
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
+		this.addSettingTab(new SidebarHoverSettingsTab(this.app, this));
 	}
 
 	onunload() {
@@ -151,7 +150,7 @@ export default class OpenSidebarHover extends Plugin {
 	}
 }
 
-class SampleSettingTab extends PluginSettingTab {
+class SidebarHoverSettingsTab extends PluginSettingTab {
 	plugin: OpenSidebarHover;
 
 	constructor(app: App, plugin: OpenSidebarHover) {
@@ -170,9 +169,6 @@ class SampleSettingTab extends PluginSettingTab {
 			+==================+
 		*/
 		
-		containerEl.createEl("h1", { text: "General Settings" });
-		containerEl.createEl("p", { text: "General settings for the plugin." });
-		
 		new Setting(containerEl).setName('Left Sidebar Hover')
 			.setDesc("Enables the expansion and collapsing of the left sidebar on hover.")
 			.addToggle(t => t
@@ -183,7 +179,7 @@ class SampleSettingTab extends PluginSettingTab {
 				}));
 		
 		new Setting(containerEl).setName('Right Sidebar Hover')
-			.setDesc("Enables the expansion and collapsing of the right sidebar on hover. NOTE: Does not actually do anything unless you *have* a right sidebar.")
+			.setDesc("Enables the expansion and collapsing of the right sidebar on hover. Only collapses the right panel unless you have a right ribbon.")
 			.addToggle(t => t
 				.setValue(this.plugin.settings.rightSidebar)
 				.onChange(async (value) => {
@@ -197,8 +193,7 @@ class SampleSettingTab extends PluginSettingTab {
 			+=========================+
 		*/
 		
-		containerEl.createEl("h1", { text: "Collapse Delay Settings" });
-		containerEl.createEl("p", { text: "Settings to change the speed at which the sidebar collapses." });
+		new Setting(containerEl).setName("Collapse Delay").setHeading();
 		
 		//'Same Collapse Delay' setting
 		new Setting(containerEl).setName('Same Collapse Delay')
@@ -272,8 +267,7 @@ class SampleSettingTab extends PluginSettingTab {
 			+=======================+
 		*/
 		
-		containerEl.createEl("h1", { text: "Experimental Settings" });
-		containerEl.createEl("p", { text: "Settings to enable experimental features. Note that such settings may not always be present." });
+		new Setting(containerEl).setName("Experimental Features").setHeading().setDesc("Settings to enable experimental features. Note that such settings may not always be present.");
 		
 		containerEl.createEl("i", { text: "Sorry, nothin' to report right now boss!" });
 		
