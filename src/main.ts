@@ -44,7 +44,7 @@ export default class OpenSidebarHover extends Plugin {
 			const settingsConst = this.settings;
 			
 			//Variables
-			var isHovering = false; //Variable to check if the cursor is hovering. Needed due to Obsidian's behaviour on the top bar.
+			let isHovering = false; //Variable to check if the cursor is hovering. Needed due to Obsidian's behaviour on the top bar.
 			
 			//Check to see if the cursor has left the leftSplit area...
 			this.registerDomEvent(leftSplit.containerEl, "mouseleave", () => {
@@ -52,9 +52,9 @@ export default class OpenSidebarHover extends Plugin {
 					isHovering = false;
 					
 					if(settingsConst.enforceSameDelay){
-						var delayTime = settingsConst.sidebarDelayBoth;
+						let delayTime = settingsConst.sidebarDelayBoth;
 					}else {
-						var delayTime = settingsConst.sidebarDelayLeft;
+						let delayTime = settingsConst.sidebarDelayLeft;
 					}
 					
 					setTimeout(() => {
@@ -75,9 +75,9 @@ export default class OpenSidebarHover extends Plugin {
 					isHovering = false;
 					
 					if(settingsConst.enforceSameDelay){
-						var delayTime = settingsConst.sidebarDelayBoth;
+						let delayTime = settingsConst.sidebarDelayBoth;
 					}else {
-						var delayTime = settingsConst.sidebarDelayLeft;
+						let delayTime = settingsConst.sidebarDelayLeft;
 					}
 					
 					setTimeout(() => {
@@ -108,8 +108,8 @@ export default class OpenSidebarHover extends Plugin {
 			this.registerDomEvent(document, "mouseenter", () => {
 				isHovering = false;
 				
-				var delayTimeLeft;
-				var delayTimeRight;
+				let delayTimeLeft;
+				let delayTimeRight;
 				
 				//If 'Same delay' setting is enabled...
 				if(settingsConst.enforceSameDelay){
