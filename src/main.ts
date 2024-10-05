@@ -46,15 +46,17 @@ export default class OpenSidebarHover extends Plugin {
 			//Variables
 			let isHovering = false; //Variable to check if the cursor is hovering. Needed due to Obsidian's behaviour on the top bar.
 			
+			let delayTime;
+			
 			//Check to see if the cursor has left the leftSplit area...
 			this.registerDomEvent(leftSplit.containerEl, "mouseleave", () => {
 				if(settingsConst.leftSidebar){ //Check to see if the user has the 'Left Sidebar Hover' setting enabled.
 					isHovering = false;
 					
 					if(settingsConst.enforceSameDelay){
-						let delayTime = settingsConst.sidebarDelayBoth;
+						delayTime = settingsConst.sidebarDelayBoth;
 					}else {
-						let delayTime = settingsConst.sidebarDelayLeft;
+						delayTime = settingsConst.sidebarDelayLeft;
 					}
 					
 					setTimeout(() => {
