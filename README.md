@@ -1,4 +1,10 @@
-# Open Sidebar on Hover
+# (DISCONTINUED) Open Sidebar on Hover
+
+## THIS PLUGIN HAS BEEN DISCONTINUED. PLEASE SEE [THIS LINK](https://github.com/bwya77/obsidian-quick-peek-sidebar) FOR ONE JUST LIKE IT THAT IS ACTIVELY MAINTAINED!
+
+Old README continued below.
+
+## Archived README:
 
 This is a simple plugin that allows you to hover to both expand and collapse the sidebars!
 
